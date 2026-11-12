@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <meta name="description" content="file-relay — declare files or folders, get resumable download links. Self-hosted, no accounts.">
+  <title>file-relay — air waybill</title>
+  <link rel="stylesheet" href="style.css">
+  <script>
+    // apply the ground before first paint: stored choice, else system
+    (function () {
+      var t = null;
+      try { t = localStorage.getItem('relay:theme'); } catch (e) {}
+      if (!t) t = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      document.documentElement.dataset.theme = t;
+    })();
+  </script>
+</head>
+<body>
+  <header class="page">
+    <div class="masthead">
+      <div>
+        <h1>FILE RELAY</h1>
+        <div class="form-sub">Air waybill &middot; not negotiable</div>
+      </div>
+      <div class="mast-right">
+        <button id="themeToggle" class="small" title="Switch day / night">Night</button>
+        <div class="barcode" aria-hidden="true"></div>
+        <div class="bar-no" id="barNo">&middot;&middot;&middot;&middot;</div>
+      </div>
+    </div>
+
+    <div class="fields">
+      <div class="field"><b>Batch no.</b><span id="batchNo">—</span></div>
+      <div class="field"><b>Origin</b><span>operator&rsquo;s server</span></div>
+      <div class="field"><b>Carriage</b><span>browser &middot; resumable</span></div>
+      <div class="field" id="newBatchField"><b>Waybill</b><span><button id="newSession" class="small">New waybill</button></span></div>
+    </div>
+  </header>
+
+  <main>
+    <div id="drop" class="consign">
+      <i class="tick tl"></i><i class="tick tr"></i><i class="tick bl"></i><i class="tick br"></i>
+      <p class="consign-label">Affix consignment here</p>
+      <p class="or">drop files or folders on this box</p>
+      <div class="btns">
+        <button id="pickFiles">Declare files&hellip;</button>
+        <button id="pickFolder">Declare folder&hellip;</button>
+      </div>
+      <input id="fileInput" type="file" multiple hidden>
+      <input id="folderInput" type="file" webkitdirectory multiple hidden>
+    </div>
+
+    <section class="manifest">
+      <h2>Consignment manifest</h2>
+      <div id="controls" class="controls hidden">
+        <button id="pauseAll" class="small">Hold all</button>
+        <button id="resumeAll" class="small">Resume all</button>
+        <span class="spacer"></span>
+        <span id="sessionStat" class="dim"></span>
+      </div>
+
+      <div id="listLink" class="banner hidden"></div>
+      <div class="items-wrap"><ul id="items" class="items"></ul></div>
+    </section>
+
+    <p class="fineprint">
+      Items are held on the operator&rsquo;s server and links expire automatically.
+      Uploads resume if you reload the page and re-declare the same file. Conditions
+      of carriage: plain HTTP between you and this machine &mdash; mind what you declare.
+    </p>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>

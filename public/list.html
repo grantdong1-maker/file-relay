@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <meta name="description" content="Inbound manifest — download the files sent to you, individually or as one bundle.">
+  <title>file-relay — inbound manifest</title>
+  <link rel="stylesheet" href="style.css">
+  <script>
+    (function () {
+      var t = null;
+      try { t = localStorage.getItem('relay:theme'); } catch (e) {}
+      if (!t) t = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      document.documentElement.dataset.theme = t;
+    })();
+  </script>
+</head>
+<body>
+  <header class="page">
+    <div class="masthead">
+      <div>
+        <h1>INBOUND <span class="no">MANIFEST</span></h1>
+        <div class="form-sub">Consignments awaiting release</div>
+      </div>
+      <div class="mast-right">
+        <button id="themeToggle" class="small" title="Switch day / night">Night</button>
+        <div class="barcode" aria-hidden="true"></div>
+        <div class="bar-no" id="barNo">&middot;&middot;&middot;&middot;</div>
+      </div>
+    </div>
+    <div class="fields">
+      <div class="field"><b>Batch no.</b><span id="batchNo">—</span></div>
+      <div class="field"><b>Consignee</b><span>holder of this link</span></div>
+      <div class="field"><b>Expiry</b><span id="expiry">—</span></div>
+    </div>
+  </header>
+
+  <main>
+    <div id="box"><p class="dim">Inspecting&hellip;</p></div>
+    <p class="fineprint">
+      To resume an interrupted download from a terminal:
+      <code>curl -C - -O &lt;item url&gt;</code>. Links expire automatically &mdash;
+      release items before the date above.
+    </p>
+  </main>
+  <script src="list.js"></script>
+</body>
+</html>
