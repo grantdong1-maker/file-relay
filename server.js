@@ -434,7 +434,7 @@ const server = http.createServer(async (req, res) => {
 
     // safe static assets
     const asset = path.normalize(p).replace(/^\/+/, '');
-    if (/^[\w.-]+$/.test(asset) && (asset === 'app.js' || asset === 'style.css' || asset === 'list.js' || asset === 'capture.html')) {
+    if (/^[\w.-]+$/.test(asset) && (asset === 'app.js' || asset === 'style.css' || asset === 'list.js')) {
       return sendFile(res, path.join(PUBLIC, asset));
     }
     const font = /^\/fonts\/[\w-]+\.woff2$/.exec(p);

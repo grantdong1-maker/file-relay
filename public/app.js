@@ -95,9 +95,12 @@ function linksFor(id) {
           <button class="small" data-copy="${here}">Copy</button>`;
 }
 function btnsFor(q, st) {
-  if (st === 'uploading') return `<button class="small" data-act="pause" data-k="${q.key}">Hold</button>`;
-  if (st === 'paused') return `<button class="small" data-act="resume" data-k="${q.key}">Resume</button>`;
-  if (st === 'done') return `<button class="small" data-act="cancel" data-k="${q.key}">Void</button>`;
+  // q.key contains a NUL separator; NUL is replaced by U+FFFD when parsed back
+  // out of an HTML attribute, so encode it to keep HISTORY lookups working.
+  const k = encodeURIComponent(q.key);
+  if (st === 'uploading') return `<button class="small" data-act="pause" data-k="${k}">Hold</button>`;
+  if (st === 'paused') return `<button class="small" data-act="resume" data-k="${k}">Resume</button>`;
+  if (st === 'done') return `<button class="small" data-act="cancel" data-k="${k}">Void</button>`;
   return '';
 }
 
@@ -135,7 +138,7 @@ async function initUpload(q) {
     headers: { 'content-type': 'application/json', ...passHeaders() },
     body,
   });
-  if (r.status === 401) { passFailed(); return initUpload(q); }
+  if (r.status === 401) { passPrompt(); return initUpload(q); }
   if (!r.ok) throw new Error('init failed: ' + r.status);
   const j = await r.json();
   q.id = j.id; q.token = j.token;
@@ -164,7 +167,7 @@ async function uploadItem(q) {
   }
 
   q.received = received;
-  setItem(q, { stamp: 'transit', meter: 'in transit' });
+  setItem(q, { stamp: 'transit', meter: 'in transit', btns: btnsFor(q, 'uploading') });
   q.started = performance.now();
 
   while (q.received < q.file.size && !q.paused) {
@@ -202,7 +205,7 @@ async function uploadItem(q) {
     paint(q);
   }
 
-  if (q.paused) { setItem(q, { stamp: 'hold', paused: true, meter: 'held — ' + pctText(q) }); return; }
+  if (q.paused) { setItem(q, { stamp: 'hold', paused: true, meter: 'held — ' + pctText(q), btns: btnsFor(q, 'paused') }); return; }
 
   q.done = true;
   delete uploads[q.id];
@@ -245,11 +248,13 @@ function getPass() {
   }
   return p;
 }
+// Only send a stored password; never block on a prompt unless the server asks (401).
 function passHeaders() {
-  const p = getPass();
+  const p = sessionStorage.getItem('relay:pass');
   return p ? { 'x-relay-pass': p } : {};
 }
 function passFailed() { sessionStorage.removeItem('relay:pass'); }
+function passPrompt() { sessionStorage.removeItem('relay:pass'); getPass(); }
 
 /* ---------- adding files ---------- */
 function addFiles(files) {
@@ -297,10 +302,10 @@ document.addEventListener('click', (e) => {
   const b = e.target.closest('button');
   if (!b) return;
   if (b.dataset.act) {
-    const q = HISTORY[b.dataset.k];
+    const q = HISTORY[decodeURIComponent(b.dataset.k)];
     if (!q) return;
-    if (b.dataset.act === 'pause') { q.paused = true; setItem(q, { stamp: 'hold', paused: true, meter: 'held — ' + pctText(q) }); }
-    if (b.dataset.act === 'resume') { q.paused = false; schedule(); }
+    if (b.dataset.act === 'pause') { q.paused = true; setItem(q, { stamp: 'hold', paused: true, meter: 'held — ' + pctText(q), btns: btnsFor(q, 'paused') }); }
+    if (b.dataset.act === 'resume') { q.paused = false; setItem(q, { stamp: 'transit', meter: 're-entry — checking progress', btns: '' }); schedule(); }
     if (b.dataset.act === 'cancel') {
       q.paused = true; q.done = true;
       q.item.remove();
@@ -333,4 +338,6 @@ function markBatch() {
   $('#barNo').textContent = listId.toUpperCase();
 }
 markBatch();
+// sync the day/night label with the theme the page actually booted into
+$('#themeToggle').textContent = document.documentElement.dataset.theme === 'dark' ? 'Day' : 'Night';
 updateSession();
